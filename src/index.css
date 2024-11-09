@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+.sidebar-item {
+  @apply flex items-center gap-2 px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition-colors;
+}
+
+.sidebar-item.active {
+  @apply bg-gray-100 text-gray-900;
+}
+
+.app-card {
+  @apply bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow;
+}
