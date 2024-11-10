@@ -1,5 +1,4 @@
-import { apiClient } from '../api-client';
-import { AxiosError } from 'axios';
+import { apiClient, handleApiError } from '../api-client';
 
 export interface Template {
   identifier: string;
@@ -31,16 +30,7 @@ export const templateApi = {
       const response = await apiClient.get(`/execparamstemplate/all/${projectName}`);
       return response.data || [];
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch templates',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -61,16 +51,7 @@ export const templateApi = {
       });
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to create template',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -79,16 +60,7 @@ export const templateApi = {
       const response = await apiClient.put(`/execparamstemplate/${identifier}`, template);
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to update template',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -96,16 +68,7 @@ export const templateApi = {
     try {
       await apiClient.delete(`/execparamstemplate/${identifier}`);
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to delete template',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   }
 };

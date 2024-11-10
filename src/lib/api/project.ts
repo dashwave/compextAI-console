@@ -1,5 +1,4 @@
-import { apiClient } from '../api-client';
-import { AxiosError } from 'axios';
+import { apiClient, handleApiError } from '../api-client';
 
 export interface Project {
   id: number;
@@ -18,16 +17,7 @@ export const projectApi = {
       const response = await apiClient.get('/project');
       return response.data || [];
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch projects',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -36,16 +26,15 @@ export const projectApi = {
       const response = await apiClient.post('/project', { name, description });
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to create project',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
+    }
+  },
+
+  delete: async (projectId: string): Promise<void> => {
+    try {
+      await apiClient.delete(`/project/${projectId}`);
+    } catch (error) {
+      throw handleApiError(error);
     }
   }
 };

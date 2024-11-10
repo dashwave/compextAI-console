@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, useParams, useNavigate } from 'react-router-dom';
 import { Plus, MoreVertical } from 'lucide-react';
 import { Sidebar } from './components/Sidebar';
 import { ProfileSettings } from './components/ProfileSettings';
@@ -12,130 +12,121 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ExecutionView } from './pages/ExecutionView';
 import { ThreadView } from './pages/ThreadView';
+import { LandingPage } from './pages/LandingPage';
+import { ProjectsPage } from './pages/ProjectsPage';
 import { projectApi, Project, ApiError } from './lib/api-client';
 
 function RequireAuth({ children }: { children: JSX.Element }) {
   const token = localStorage.getItem('api_token');
+  const location = useLocation();
   
   if (!token) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If user is authenticated and tries to access the landing page, redirect to projects
+  if (location.pathname === '/') {
+    return <Navigate to="/projects" replace />;
   }
 
   return children;
 }
 
-function Dashboard() {
-  const [activeTab, setActiveTab] = useState('conversations');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+function ProjectDashboard() {
+  const navigate = useNavigate();
+  const { projectName, tab = 'conversations' } = useParams();
+  const [activeTab, setActiveTab] = useState(tab);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCreating, setIsCreating] = useState(false);
-  const location = useLocation();
 
   useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  useEffect(() => {
-    // Set active tab based on location state
-    if (location.state?.activeTab) {
-      setActiveTab(location.state.activeTab);
+    if (projectName) {
+      fetchProject();
     }
-  }, [location]);
+  }, [projectName]);
 
-  const fetchProjects = async () => {
+  useEffect(() => {
+    setActiveTab(tab);
+  }, [tab]);
+
+  const fetchProject = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await projectApi.list();
-      setProjects(data);
+      const projects = await projectApi.list();
+      const project = projects.find(p => p.name === projectName);
+      if (project) {
+        setSelectedProject(project);
+      } else {
+        setError('Project not found');
+      }
     } catch (err) {
       const apiError = err as ApiError;
-      console.error('Error fetching projects:', apiError);
+      console.error('Error fetching project:', apiError);
       setError(apiError.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreateProject = async (name: string, description: string) => {
-    try {
-      setIsCreating(true);
-      const newProject = await projectApi.create(name, description);
-      setProjects([newProject, ...projects]);
-      setIsModalOpen(false);
-    } catch (err) {
-      const apiError = err as ApiError;
-      console.error('Error creating project:', apiError);
-      throw apiError;
-    } finally {
-      setIsCreating(false);
+  const handleBackToProjects = () => {
+    navigate('/projects');
+    setSelectedProject(null);
+  };
+
+  const handleTabChange = (newTab: string) => {
+    setActiveTab(newTab);
+    if (selectedProject) {
+      navigate(`/project/${selectedProject.name}/${newTab}`);
     }
   };
 
-  const handleProjectSelect = (project: Project) => {
-    setSelectedProject(project);
-    setActiveTab('conversations');
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          selectedProject={selectedProject}
+          onBackToProjects={handleBackToProjects}
+        />
+        <main className="flex-1 pl-64">
+          <div className="p-8">
+            <div className="flex justify-center items-center h-64">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex">
+        <Sidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange} 
+          selectedProject={selectedProject}
+          onBackToProjects={handleBackToProjects}
+        />
+        <main className="flex-1 pl-64">
+          <div className="p-8">
+            <div className="flex justify-center items-center h-64">
+              <div className="text-red-600">{error}</div>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  if (!selectedProject) {
+    return <Navigate to="/projects" replace />;
+  }
 
   const renderContent = () => {
-    if (!selectedProject) {
-      if (isLoading) {
-        return (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          </div>
-        );
-      }
-
-      if (error) {
-        return (
-          <div className="flex justify-center items-center h-64">
-            <div className="text-red-600">{error}</div>
-          </div>
-        );
-      }
-
-      return (
-        <div className="grid grid-cols-2 gap-6">
-          {projects.map((project) => (
-            <div
-              key={project.identifier}
-              className="app-card cursor-pointer"
-              onClick={() => handleProjectSelect(project)}
-            >
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-medium">{project.name}</h3>
-                <button 
-                  className="text-gray-400 hover:text-gray-600"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <MoreVertical size={18} />
-                </button>
-              </div>
-              {project.description && (
-                <p className="text-gray-600 text-sm mb-4">{project.description}</p>
-              )}
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Last modified:</span>
-                <span className="text-gray-600">
-                  {new Date(project.updated_at).toLocaleDateString('en-US', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      );
-    }
-
     switch (activeTab) {
       case 'conversations':
         return <ConversationsTab project={selectedProject} />;
@@ -154,37 +145,14 @@ function Dashboard() {
     <div className="min-h-screen bg-gray-50 flex">
       <Sidebar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab} 
+        onTabChange={handleTabChange} 
         selectedProject={selectedProject}
-        onBackToProjects={() => setSelectedProject(null)}
+        onBackToProjects={handleBackToProjects}
       />
-
-      <main className="flex-1 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-semibold">
-            {selectedProject ? selectedProject.name : 'Projects'}
-          </h1>
-          {!selectedProject && (
-            <button
-              onClick={() => setIsModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              <Plus size={18} />
-              Create new app
-            </button>
-          )}
+      <main className="flex-1 pl-64">
+        <div className="p-8">
+          {renderContent()}
         </div>
-
-        {!selectedProject && <hr className="border-gray-200 mb-6" />}
-
-        {renderContent()}
-
-        <CreateProjectModal
-          isOpen={isModalOpen}
-          onClose={() => setIsModalOpen(false)}
-          onSubmit={handleCreateProject}
-          isCreating={isCreating}
-        />
       </main>
     </div>
   );
@@ -194,11 +162,44 @@ export function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<LandingPage />} />
         <Route
-          path="/"
+          path="/projects"
           element={
             <RequireAuth>
-              <Dashboard />
+              <ProjectsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/project/:projectName"
+          element={
+            <RequireAuth>
+              <Navigate to="conversations" replace />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/project/:projectName/:tab"
+          element={
+            <RequireAuth>
+              <ProjectDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/project/:projectName/executions/:executionId"
+          element={
+            <RequireAuth>
+              <ExecutionView />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/project/:projectName/threads/:threadId"
+          element={
+            <RequireAuth>
+              <ThreadView />
             </RequireAuth>
           }
         />
@@ -210,11 +211,8 @@ export function App() {
             </RequireAuth>
           }
         />
-        <Route path="/executions/:executionId" element={<ExecutionView />} />
-        <Route path="/threads/:threadId" element={<ThreadView />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );

@@ -1,5 +1,4 @@
-import { apiClient } from '../api-client';
-import { AxiosError } from 'axios';
+import { apiClient, handleApiError } from '../api-client';
 import { Template } from './template';
 
 export interface PromptConfig extends Template {
@@ -14,16 +13,7 @@ export const promptConfigApi = {
       const response = await apiClient.get(`/execparams/fetchall/${projectName}`);
       return response.data || [];
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch prompt configs',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -32,16 +22,7 @@ export const promptConfigApi = {
       const response = await apiClient.get(`/execparamstemplate/${templateId}`);
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch template',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -55,16 +36,7 @@ export const promptConfigApi = {
       });
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to create prompt config',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -78,16 +50,7 @@ export const promptConfigApi = {
       });
       return response.data;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to update prompt config',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -101,16 +64,7 @@ export const promptConfigApi = {
         }
       });
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to delete prompt config',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   }
 };

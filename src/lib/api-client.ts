@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance, AxiosError } from 'axios';
 
 const BASE_URL = 'https://compext-ai.dashwave.io/api/v1';
 
@@ -27,6 +27,46 @@ if (storedToken) {
 export interface ApiError {
   message: string;
   status: number;
+}
+
+export function handleApiError(error: unknown): ApiError {
+  if (error instanceof AxiosError) {
+    // Handle JSON error responses
+    if (error.response?.data?.error) {
+      return {
+        message: error.response.data.error,
+        status: error.response.status
+      };
+    }
+    
+    // Handle string error messages
+    if (error.response?.data?.message) {
+      return {
+        message: error.response.data.message,
+        status: error.response.status
+      };
+    }
+
+    // Default error message based on status code
+    const statusMessage = {
+      400: 'Bad request',
+      401: 'Unauthorized',
+      403: 'Forbidden',
+      404: 'Not found',
+      500: 'Internal server error',
+    }[error.response?.status] || 'An unexpected error occurred';
+
+    return {
+      message: statusMessage,
+      status: error.response?.status || 500
+    };
+  }
+
+  // Handle non-Axios errors
+  return {
+    message: error instanceof Error ? error.message : 'An unexpected error occurred',
+    status: 500
+  };
 }
 
 export * from './api/project';

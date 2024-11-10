@@ -1,5 +1,4 @@
-import { apiClient } from '../api-client';
-import { AxiosError } from 'axios';
+import { apiClient, handleApiError } from '../api-client';
 
 export interface Thread {
   identifier: string;
@@ -19,16 +18,7 @@ export const threadApi = {
       const response = await apiClient.get(`/thread/all/${projectName}`);
       return response.data || [];
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch threads',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -37,16 +27,7 @@ export const threadApi = {
       const response = await apiClient.get(`/message/thread/${threadId}`);
       return response.data || [];
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Failed to fetch messages',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   }
 };

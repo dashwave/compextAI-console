@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { MessageSquare, ChevronRight } from 'lucide-react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { MessageSquare, ChevronRight, RefreshCw } from 'lucide-react';
 import { threadApi, Thread, ApiError } from '../lib/api-client';
 
 interface Project {
@@ -25,9 +25,11 @@ const LABEL_COLORS = [
 
 export function ConversationsTab({ project }: ConversationsTabProps) {
   const navigate = useNavigate();
+  const { projectName } = useParams();
   const [threads, setThreads] = useState<Thread[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchThreads();
@@ -48,6 +50,22 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
     }
   };
 
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      const data = await threadApi.list(project.name);
+      setThreads(data);
+      setError(null);
+    } catch (err) {
+      const apiError = err as ApiError;
+      console.error('Error refreshing threads:', apiError);
+      setError(apiError.message);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -65,45 +83,59 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
   }
 
   return (
-    <div className="space-y-4">
-      {threads.map((thread) => (
-        <div
-          key={thread.identifier}
-          onClick={() => navigate(`/threads/${thread.identifier}`)}
-          className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-lg font-medium">Conversations</h2>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 disabled:opacity-50"
         >
-          <div className="flex items-start justify-between">
-            <div className="flex items-start gap-3">
-              <MessageSquare className="text-blue-600 mt-1" size={20} />
-              <div>
-                <h3 className="text-lg font-medium">{thread.title}</h3>
-                <p className="text-sm text-gray-500">ID: {thread.identifier}</p>
-                {Object.entries(thread.metadata).length > 0 && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {Object.entries(thread.metadata).map(([key, value], i) => (
-                      <span
-                        key={key}
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          LABEL_COLORS[i % LABEL_COLORS.length]
-                        }`}
-                      >
-                        {key}: {value}
-                      </span>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-            <ChevronRight size={18} className="text-gray-400" />
-          </div>
-        </div>
-      ))}
+          <RefreshCw size={18} className={isRefreshing ? 'animate-spin' : ''} />
+          <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
+        </button>
+      </div>
 
-      {threads.length === 0 && (
-        <div className="text-center text-gray-500 py-8">
-          No conversations found
-        </div>
-      )}
+      <div className="space-y-4">
+        {threads.map((thread) => (
+          <div
+            key={thread.identifier}
+            onClick={() => navigate(`/project/${projectName}/threads/${thread.identifier}`)}
+            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <MessageSquare className="text-blue-600 mt-1" size={20} />
+                <div>
+                  <h3 className="text-lg font-medium">{thread.title}</h3>
+                  <p className="text-sm text-gray-500">ID: {thread.identifier}</p>
+                  {Object.entries(thread.metadata).length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {Object.entries(thread.metadata).map(([key, value], i) => (
+                        <span
+                          key={key}
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            LABEL_COLORS[i % LABEL_COLORS.length]
+                          }`}
+                        >
+                          {key}: {value}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-gray-400" />
+            </div>
+          </div>
+        ))}
+
+        {threads.length === 0 && (
+          <div className="text-center text-gray-500 py-8">
+            No conversations found
+          </div>
+        )}
+      </div>
     </div>
   );
 }

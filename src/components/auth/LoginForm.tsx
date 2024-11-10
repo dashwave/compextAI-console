@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { authApi } from '../../lib/api/auth';
 import { updateAuthToken } from '../../lib/api-client';
 
 export function LoginForm() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,7 +24,7 @@ export function LoginForm() {
       const token = await authApi.login(formData.username, formData.password);
       localStorage.setItem('api_token', token);
       updateAuthToken(token);
-      navigate('/', { replace: true });
+      navigate('/projects', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Login failed. Please try again.');
     } finally {

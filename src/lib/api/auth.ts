@@ -1,5 +1,4 @@
-import { apiClient } from '../api-client';
-import { AxiosError } from 'axios';
+import { apiClient, handleApiError } from '../api-client';
 
 interface AuthResponse {
   api_token: string;
@@ -14,16 +13,7 @@ export const authApi = {
       });
       return response.data.api_token;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Login failed',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   },
 
@@ -36,16 +26,7 @@ export const authApi = {
       });
       return response.data.api_token;
     } catch (error) {
-      if (error instanceof AxiosError) {
-        throw {
-          message: error.response?.data?.message || 'Signup failed',
-          status: error.response?.status || 500
-        };
-      }
-      throw {
-        message: 'An unexpected error occurred',
-        status: 500
-      };
+      throw handleApiError(error);
     }
   }
 };

@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { ConversationView } from '../components/ConversationView';
 
 export function ThreadView() {
-  const { threadId } = useParams();
+  const { threadId, projectName } = useParams();
   const navigate = useNavigate();
 
   const handleBack = () => {
-    // Navigate back to the conversations tab
-    navigate('/', { state: { activeTab: 'conversations' } });
+    navigate(`/project/${projectName}/conversations`);
   };
 
   return (

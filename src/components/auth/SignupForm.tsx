@@ -24,7 +24,7 @@ export function SignupForm() {
       const token = await authApi.signup(formData.username, formData.email, formData.password);
       localStorage.setItem('api_token', token);
       updateAuthToken(token);
-      navigate('/', { replace: true });
+      navigate('/projects', { replace: true });
     } catch (err: any) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
