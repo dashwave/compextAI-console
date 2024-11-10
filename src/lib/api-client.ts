@@ -1,6 +1,10 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 
-const BASE_URL = 'https://compext-ai.dashwave.io/api/v1';
+const BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+if (!BASE_URL) {
+  throw new Error('API base URL is not configured. Please check your environment variables.');
+}
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -73,5 +77,3 @@ export * from './api/project';
 export * from './api/template';
 export * from './api/conversation';
 export * from './api/prompt-config';
-
-export default apiClient;
