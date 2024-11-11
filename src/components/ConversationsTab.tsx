@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { MessageSquare, ChevronRight, RefreshCw } from 'lucide-react';
-import { threadApi, Thread, ApiError } from '../lib/api-client';
+import { threadApi, Thread } from '../lib/api-client';
 
 interface Project {
-  id: number;
   identifier: string;
   name: string;
   description: string;
@@ -41,10 +40,9 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
       setError(null);
       const data = await threadApi.list(project.name);
       setThreads(data);
-    } catch (err) {
-      const apiError = err as ApiError;
-      console.error('Error fetching threads:', apiError);
-      setError(apiError.message);
+    } catch (err: any) {
+      console.error('Error fetching threads:', err);
+      setError(err.message || 'Failed to fetch threads');
     } finally {
       setIsLoading(false);
     }
@@ -57,10 +55,9 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
       const data = await threadApi.list(project.name);
       setThreads(data);
       setError(null);
-    } catch (err) {
-      const apiError = err as ApiError;
-      console.error('Error refreshing threads:', apiError);
-      setError(apiError.message);
+    } catch (err: any) {
+      console.error('Error refreshing threads:', err);
+      setError(err.message || 'Failed to refresh threads');
     } finally {
       setIsRefreshing(false);
     }
@@ -101,32 +98,35 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
           <div
             key={thread.identifier}
             onClick={() => navigate(`/project/${projectName}/threads/${thread.identifier}`)}
-            className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow cursor-pointer"
+            className="app-card group"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <MessageSquare className="text-blue-600 mt-1" size={20} />
-                <div>
-                  <h3 className="text-lg font-medium">{thread.title}</h3>
-                  <p className="text-sm text-gray-500">ID: {thread.identifier}</p>
-                  {Object.entries(thread.metadata).length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {Object.entries(thread.metadata).map(([key, value], i) => (
-                        <span
-                          key={key}
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            LABEL_COLORS[i % LABEL_COLORS.length]
-                          }`}
-                        >
-                          {key}: {value}
-                        </span>
-                      ))}
-                    </div>
-                  )}
+            <div className="app-card-content">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <MessageSquare className="text-blue-600 mt-1" size={20} />
+                  <div>
+                    <h3 className="text-lg font-medium">{thread.title}</h3>
+                    <p className="text-sm text-gray-500">ID: {thread.identifier}</p>
+                    {thread.metadata && Object.keys(thread.metadata).length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {Object.entries(thread.metadata).map(([key, value], i) => (
+                          <span
+                            key={key}
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              LABEL_COLORS[i % LABEL_COLORS.length]
+                            }`}
+                          >
+                            {key}: {value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
+                <ChevronRight size={18} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
               </div>
-              <ChevronRight size={18} className="text-gray-400" />
             </div>
+            <div className="app-card-overlay" />
           </div>
         ))}
 

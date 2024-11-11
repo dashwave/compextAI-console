@@ -1,5 +1,15 @@
 import { apiClient, handleApiError } from '../api-client';
 
+interface ExecutionTemplate {
+  model: string;
+  temperature: number;
+  max_tokens?: number;
+  max_completion_tokens?: number;
+  top_p?: number;
+  max_output_tokens?: number;
+  response_format?: Record<string, any>;
+}
+
 export interface Execution {
   identifier: string;
   status: string;
@@ -14,6 +24,7 @@ export interface Execution {
   execution_response_metadata: Record<string, any>;
   execution_request_metadata: Record<string, any>;
   system_prompt?: string;
+  thread_execution_params_template: ExecutionTemplate;
 }
 
 export const executionApi = {

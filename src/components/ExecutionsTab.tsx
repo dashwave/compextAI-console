@@ -96,33 +96,36 @@ export function ExecutionsTab({ project }: ExecutionsTabProps) {
           <div
             key={execution.identifier}
             onClick={() => navigate(`/project/${projectName}/executions/${execution.identifier}`)}
-            className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+            className="app-card group"
           >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                {statusIcons[execution.status as keyof typeof statusIcons] || 
-                 statusIcons.running}
-                <div>
-                  <h3 className="text-lg font-medium">Execution {execution.identifier}</h3>
-                  <p className="text-sm text-gray-500">
-                    Created at: {new Date(execution.created_at).toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-500">
-                    Thread ID: {execution.thread_id}
-                  </p>
+            <div className="app-card-content">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  {statusIcons[execution.status as keyof typeof statusIcons] || 
+                   statusIcons.running}
+                  <div>
+                    <h3 className="text-lg font-medium">Execution {execution.identifier}</h3>
+                    <p className="text-sm text-gray-500">
+                      Created at: {new Date(execution.created_at).toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Thread ID: {execution.thread_id}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-3 py-1 rounded-full text-sm ${
+                    execution.status === 'completed' ? 'bg-green-100 text-green-800' :
+                    execution.status === 'failed' ? 'bg-red-100 text-red-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {execution.status.charAt(0).toUpperCase() + execution.status.slice(1)}
+                  </span>
+                  <ChevronRight size={18} className="text-gray-400 group-hover:text-gray-600 transition-colors" />
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`px-3 py-1 rounded-full text-sm ${
-                  execution.status === 'completed' ? 'bg-green-100 text-green-800' :
-                  execution.status === 'failed' ? 'bg-red-100 text-red-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}>
-                  {execution.status.charAt(0).toUpperCase() + execution.status.slice(1)}
-                </span>
-                <ChevronRight size={18} className="text-gray-400" />
-              </div>
             </div>
+            <div className="app-card-overlay" />
           </div>
         ))}
 

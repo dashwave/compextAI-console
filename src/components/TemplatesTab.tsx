@@ -117,249 +117,269 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
           return (
             <div
               key={template.identifier}
-              className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+              className="app-card group"
+              onClick={() => !isEditing && setExpandedId(isExpanded ? null : template.identifier)}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-3">
-                  <FileCode className="text-blue-600 mt-1" size={20} />
-                  <div>
-                    <h3 className="text-lg font-medium">{template.name}</h3>
-                    <p className="text-sm text-gray-500">Model: {template.model}</p>
+              <div className="app-card-content">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <FileCode className="text-blue-600 mt-1" size={20} />
+                    <div>
+                      <h3 className="text-lg font-medium">{template.name}</h3>
+                      <p className="text-sm text-gray-500">Model: {template.model}</p>
+                    </div>
+                  </div>
+                  <div className="app-card-actions">
+                    {isExpanded && !isEditing && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingTemplate(template);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Settings size={18} className="text-gray-400" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteTemplate(template);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} className="text-gray-400" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setExpandedId(isExpanded ? null : template.identifier);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {isExpanded ? (
+                        <ChevronUp size={18} className="text-gray-400" />
+                      ) : (
+                        <ChevronDown size={18} className="text-gray-400" />
+                      )}
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
-                  {isExpanded && !isEditing && (
-                    <>
-                      <button
-                        onClick={() => setEditingTemplate(template)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Settings size={18} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteTemplate(template);
-                        }}
-                        className="text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => setExpandedId(isExpanded ? null : template.identifier)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                </div>
-              </div>
 
-              {isExpanded && (
-                <div className="mt-4 space-y-4">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
-                        <input
-                          type="text"
-                          value={editingTemplate.name}
-                          disabled
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
-                        <select
-                          value={editingTemplate.model}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            model: e.target.value as ModelType
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        >
-                          {AVAILABLE_MODELS.map(model => (
-                            <option key={model} value={model}>{model}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="2"
-                          step="0.1"
-                          value={editingTemplate.temperature}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            temperature: parseFloat(e.target.value)
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Timeout</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingTemplate.timeout}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            timeout: parseInt(e.target.value)
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingTemplate.max_tokens || ''}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            max_tokens: e.target.value ? parseInt(e.target.value) : null
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Completion Tokens</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingTemplate.max_completion_tokens || ''}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            max_completion_tokens: e.target.value ? parseInt(e.target.value) : null
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Max Output Tokens</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={editingTemplate.max_output_tokens || ''}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            max_output_tokens: e.target.value ? parseInt(e.target.value) : null
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Top P</label>
-                        <input
-                          type="number"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={editingTemplate.top_p || ''}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            top_p: e.target.value ? parseFloat(e.target.value) : null
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">System Prompt</label>
-                        <textarea
-                          value={editingTemplate.system_prompt || ''}
-                          onChange={(e) => setEditingTemplate({
-                            ...editingTemplate,
-                            system_prompt: e.target.value || null
-                          })}
-                          rows={3}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Response Format</label>
-                        <textarea
-                          value={JSON.stringify(editingTemplate.response_format || {}, null, 2)}
-                          onChange={(e) => {
-                            try {
-                              const parsed = JSON.parse(e.target.value);
-                              setEditingTemplate({
-                                ...editingTemplate,
-                                response_format: parsed
-                              });
-                            } catch (err) {
-                              // Invalid JSON, ignore
-                            }
-                          }}
-                          rows={4}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
-                        />
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingTemplate(null)}
-                          className="px-4 py-2 text-gray-600 hover:text-gray-900"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={() => handleUpdate(editingTemplate)}
-                          disabled={saving}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        >
-                          <Save size={18} />
-                          {saving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <div className="grid grid-cols-2 gap-4">
+                {isExpanded && (
+                  <div className="mt-4 space-y-4">
+                    {isEditing ? (
+                      <div className="space-y-4">
                         <div>
-                          <span className="text-sm text-gray-500">Temperature:</span>
-                          <span className="ml-2">{template.temperature}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                          <input
+                            type="text"
+                            value={editingTemplate.name}
+                            disabled
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50"
+                          />
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Timeout:</span>
-                          <span className="ml-2">{template.timeout}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Model</label>
+                          <select
+                            value={editingTemplate.model}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              model: e.target.value as ModelType
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          >
+                            {AVAILABLE_MODELS.map(model => (
+                              <option key={model} value={model}>{model}</option>
+                            ))}
+                          </select>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Max Tokens:</span>
-                          <span className="ml-2">{template.max_tokens || 'N/A'}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Temperature</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="2"
+                            step="0.1"
+                            value={editingTemplate.temperature}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              temperature: parseFloat(e.target.value)
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Top P:</span>
-                          <span className="ml-2">{template.top_p || 'N/A'}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Timeout</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editingTemplate.timeout}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              timeout: parseInt(e.target.value)
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Max Completion Tokens:</span>
-                          <span className="ml-2">{template.max_completion_tokens || 'N/A'}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Max Tokens</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editingTemplate.max_tokens || ''}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              max_tokens: e.target.value ? parseInt(e.target.value) : null
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Max Output Tokens:</span>
-                          <span className="ml-2">{template.max_output_tokens || 'N/A'}</span>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Max Completion Tokens</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editingTemplate.max_completion_tokens || ''}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              max_completion_tokens: e.target.value ? parseInt(e.target.value) : null
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Max Output Tokens</label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={editingTemplate.max_output_tokens || ''}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              max_output_tokens: e.target.value ? parseInt(e.target.value) : null
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Top P</label>
+                          <input
+                            type="number"
+                            min="0"
+                            max="1"
+                            step="0.1"
+                            value={editingTemplate.top_p || ''}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              top_p: e.target.value ? parseFloat(e.target.value) : null
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">System Prompt</label>
+                          <textarea
+                            value={editingTemplate.system_prompt || ''}
+                            onChange={(e) => setEditingTemplate({
+                              ...editingTemplate,
+                              system_prompt: e.target.value || null
+                            })}
+                            rows={3}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Response Format</label>
+                          <textarea
+                            value={JSON.stringify(editingTemplate.response_format || {}, null, 2)}
+                            onChange={(e) => {
+                              try {
+                                const parsed = JSON.parse(e.target.value);
+                                setEditingTemplate({
+                                  ...editingTemplate,
+                                  response_format: parsed
+                                });
+                              } catch (err) {
+                                // Invalid JSON, ignore
+                              }
+                            }}
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+                          />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingTemplate(null);
+                            }}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdate(editingTemplate);
+                            }}
+                            disabled={saving}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          >
+                            <Save size={18} />
+                            {saving ? 'Saving...' : 'Save Changes'}
+                          </button>
                         </div>
                       </div>
-                      {template.system_prompt && (
-                        <div>
-                          <span className="text-sm text-gray-500 block mb-1">System Prompt:</span>
-                          <p className="text-sm bg-gray-50 p-3 rounded-lg">{template.system_prompt}</p>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-500">Temperature:</span>
+                            <span className="ml-2">{template.temperature}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Timeout:</span>
+                            <span className="ml-2">{template.timeout}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Tokens:</span>
+                            <span className="ml-2">{template.max_tokens || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Top P:</span>
+                            <span className="ml-2">{template.top_p || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Completion Tokens:</span>
+                            <span className="ml-2">{template.max_completion_tokens || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Output Tokens:</span>
+                            <span className="ml-2">{template.max_output_tokens || 'N/A'}</span>
+                          </div>
                         </div>
-                      )}
-                      {template.response_format && Object.keys(template.response_format).length > 0 && (
-                        <div>
-                          <span className="text-sm text-gray-500 block mb-1">Response Format:</span>
-                          <pre className="text-sm bg-gray-50 p-3 rounded-lg overflow-auto">
-                            {JSON.stringify(template.response_format, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                        {template.system_prompt && (
+                          <div>
+                            <span className="text-sm text-gray-500 block mb-1">System Prompt:</span>
+                            <p className="text-sm bg-gray-50 p-3 rounded-lg">{template.system_prompt}</p>
+                          </div>
+                        )}
+                        {template.response_format && Object.keys(template.response_format).length > 0 && (
+                          <div>
+                            <span className="text-sm text-gray-500 block mb-1">Response Format:</span>
+                            <pre className="text-sm bg-gray-50 p-3 rounded-lg overflow-auto">
+                              {JSON.stringify(template.response_format, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              {!isEditing && <div className="app-card-overlay" />}
             </div>
           );
         })}

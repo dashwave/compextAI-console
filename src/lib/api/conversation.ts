@@ -3,7 +3,7 @@ import { apiClient, handleApiError } from '../api-client';
 export interface Thread {
   identifier: string;
   title: string;
-  metadata: Record<string, string>;
+  metadata: Record<string, string> | null;
 }
 
 export interface Message {

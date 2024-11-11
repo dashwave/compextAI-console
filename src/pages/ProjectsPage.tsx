@@ -119,60 +119,53 @@ export function ProjectsPage() {
           {projects.map((project) => (
             <div
               key={project.identifier}
-              className="app-card"
+              className="app-card group"
+              onClick={() => handleProjectSelect(project)}
             >
-              <div className="flex justify-between items-start mb-4">
-                <h3 
-                  className="text-lg font-medium cursor-pointer"
-                  onClick={() => handleProjectSelect(project)}
-                >
-                  {project.name}
-                </h3>
-                <div className="relative project-dropdown">
-                  <button 
-                    className="text-gray-400 hover:text-gray-600 p-1"
-                    onClick={(e) => toggleDropdown(project.identifier, e)}
-                  >
-                    <MoreVertical size={18} />
-                  </button>
-                  {openDropdownId === project.identifier && (
-                    <div className="absolute right-0 mt-1 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-10">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteProject(project);
-                          setOpenDropdownId(null);
-                        }}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-                      >
-                        <Trash2 size={16} />
-                        Delete Project
-                      </button>
-                    </div>
-                  )}
+              <div className="app-card-content">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="text-lg font-medium">{project.name}</h3>
+                    {project.description && (
+                      <p className="text-gray-600 text-sm mb-4">{project.description}</p>
+                    )}
+                  </div>
+                  <div className="app-card-actions project-dropdown">
+                    <button 
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                      onClick={(e) => toggleDropdown(project.identifier, e)}
+                    >
+                      <MoreVertical size={18} className="text-gray-400" />
+                    </button>
+                    {openDropdownId === project.identifier && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteProject(project);
+                            setOpenDropdownId(null);
+                          }}
+                          className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                        >
+                          <Trash2 size={16} />
+                          Delete Project
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Last modified:</span>
+                  <span className="text-gray-600">
+                    {new Date(project.updated_at).toLocaleDateString('en-US', {
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
                 </div>
               </div>
-              {project.description && (
-                <p 
-                  className="text-gray-600 text-sm mb-4 cursor-pointer"
-                  onClick={() => handleProjectSelect(project)}
-                >
-                  {project.description}
-                </p>
-              )}
-              <div 
-                className="flex justify-between text-sm cursor-pointer"
-                onClick={() => handleProjectSelect(project)}
-              >
-                <span className="text-gray-500">Last modified:</span>
-                <span className="text-gray-600">
-                  {new Date(project.updated_at).toLocaleDateString('en-US', {
-                    day: '2-digit',
-                    month: 'short',
-                    year: 'numeric',
-                  })}
-                </span>
-              </div>
+              <div className="app-card-overlay" />
             </div>
           ))}
         </div>

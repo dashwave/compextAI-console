@@ -15,5 +15,22 @@ body {
 }
 
 .app-card {
-  @apply bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow;
+  @apply relative bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-all cursor-pointer;
+}
+
+.app-card:hover {
+  @apply border-blue-200 shadow-blue-50;
+}
+
+.app-card-actions {
+  @apply absolute right-4 top-4 flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100;
+}
+
+.app-card-content {
+  @apply relative z-10;
+}
+
+/* Make the entire card clickable while preserving button clicks */
+.app-card-overlay {
+  @apply absolute inset-0 z-0;
 }

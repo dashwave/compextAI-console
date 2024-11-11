@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Bot, User, ChevronDown, ChevronUp, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Bot, User, ChevronDown, ChevronUp, Link as LinkIcon, Settings } from 'lucide-react';
 import { executionApi, Execution } from '../lib/api/execution';
 
 interface ExpandableMessageProps {
@@ -8,7 +8,33 @@ interface ExpandableMessageProps {
   isUser: boolean;
 }
 
+interface ExpandableJsonProps {
+  data: Record<string, any>;
+  title: string;
+}
+
 const MESSAGE_PREVIEW_LENGTH = 300;
+
+function ExpandableJson({ data, title }: ExpandableJsonProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="border border-gray-200 rounded-lg p-4">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center justify-between w-full text-left"
+      >
+        <span className="text-sm font-medium text-gray-700">{title}</span>
+        {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+      {isExpanded && (
+        <pre className="mt-2 p-4 bg-gray-50 rounded-lg overflow-auto text-sm">
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      )}
+    </div>
+  );
+}
 
 function ExpandableMessage({ content, isUser }: ExpandableMessageProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -103,15 +129,7 @@ export function ExecutionView() {
     );
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const messages = execution.input_messages.filter(msg => msg.role !== 'system');
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -124,80 +142,125 @@ export function ExecutionView() {
           <span>Back to Executions</span>
         </button>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
-          <div className="mb-6">
-            <div className="flex items-start justify-between">
+        <div className="space-y-6">
+          {/* Execution Header */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex justify-between items-start mb-4">
               <div>
                 <h1 className="text-2xl font-semibold">Execution {execution.identifier}</h1>
-                <p className="text-sm text-gray-500">Created at: {formatDate(execution.created_at)}</p>
+                <p className="text-sm text-gray-500 mt-1">
+                  Created at: {new Date(execution.created_at).toLocaleString()}
+                </p>
                 <div className="flex items-center gap-2 mt-1">
                   <p className="text-sm text-gray-500">Thread ID: {execution.thread_id}</p>
                   {execution.thread_id !== 'compext_thread_null' && (
-                    <Link
-                      to="/"
-                      state={{ activeTab: 'conversations', threadId: execution.thread_id }}
+                    <button
+                      onClick={() => navigate(`/project/${projectName}/threads/${execution.thread_id}`)}
                       className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700"
                     >
-                      <MessageSquare size={14} />
-                      <span>View Conversation</span>
-                    </Link>
+                      <LinkIcon size={14} />
+                      <span>View Thread</span>
+                    </button>
                   )}
                 </div>
               </div>
             </div>
+
+            {/* Execution Parameters */}
+            {execution.thread_execution_params_template && (
+              <div className="mt-6 border-t border-gray-200 pt-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Settings size={18} className="text-gray-500" />
+                  <h2 className="text-lg font-medium">Execution Parameters</h2>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-500 block">Model</span>
+                    <span className="font-medium">{execution.thread_execution_params_template.model}</span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500 block">Temperature</span>
+                    <span className="font-medium">{execution.thread_execution_params_template.temperature}</span>
+                  </div>
+                  {execution.thread_execution_params_template.max_tokens && (
+                    <div>
+                      <span className="text-sm text-gray-500 block">Max Tokens</span>
+                      <span className="font-medium">{execution.thread_execution_params_template.max_tokens}</span>
+                    </div>
+                  )}
+                  {execution.thread_execution_params_template.max_completion_tokens && (
+                    <div>
+                      <span className="text-sm text-gray-500 block">Max Completion Tokens</span>
+                      <span className="font-medium">{execution.thread_execution_params_template.max_completion_tokens}</span>
+                    </div>
+                  )}
+                  {execution.thread_execution_params_template.top_p && (
+                    <div>
+                      <span className="text-sm text-gray-500 block">Top P</span>
+                      <span className="font-medium">{execution.thread_execution_params_template.top_p}</span>
+                    </div>
+                  )}
+                  {execution.thread_execution_params_template.max_output_tokens && (
+                    <div>
+                      <span className="text-sm text-gray-500 block">Max Output Tokens</span>
+                      <span className="font-medium">{execution.thread_execution_params_template.max_output_tokens}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {systemPrompt && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-              <div className="flex justify-between items-start gap-2">
-                <div className="flex-1">
-                  <span className="text-sm font-medium text-gray-700">Context:</span>
-                  <div className={`text-sm text-gray-600 mt-1`}>
+          {/* Conversation */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+            {systemPrompt && (
+              <div className="p-4 bg-gray-50 border-b border-gray-200">
+                <div className="max-w-3xl mx-auto">
+                  <div className="text-sm text-gray-600">
+                    <span className="font-medium text-gray-700">Context: </span>
                     <ExpandableMessage content={systemPrompt} isUser={false} />
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div className="space-y-6">
-            {execution.input_messages.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${message.role === 'user' ? 'justify-start' : 'justify-end'} gap-3 max-w-[85%] ${
-                  message.role === 'user' ? 'ml-0' : 'ml-auto'
-                }`}
-              >
-                {message.role === 'user' && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <User size={16} className="text-gray-600" />
-                  </div>
-                )}
-                <div className={`flex flex-col ${message.role === 'user' ? 'items-start' : 'items-end'} flex-1`}>
+            <div className="p-6 space-y-6">
+              {messages.map((message, index) => {
+                const isUser = message.role === 'user';
+                return (
                   <div
-                    className={`rounded-2xl px-4 py-3 ${
-                      message.role === 'user'
-                        ? 'bg-gray-100 text-gray-900'
-                        : 'bg-blue-600 text-white'
+                    key={index}
+                    className={`flex ${isUser ? 'justify-start' : 'justify-end'} gap-3 max-w-[85%] ${
+                      isUser ? 'ml-0' : 'ml-auto'
                     }`}
                   >
-                    <ExpandableMessage content={message.content} isUser={message.role === 'user'} />
+                    {isUser && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <User size={16} className="text-gray-600" />
+                      </div>
+                    )}
+                    <div className={`flex flex-col ${isUser ? 'items-start' : 'items-end'} flex-1`}>
+                      <div
+                        className={`w-full rounded-2xl px-4 py-3 ${
+                          isUser ? 'bg-gray-100 text-gray-900' : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        <ExpandableMessage content={message.content} isUser={isUser} />
+                      </div>
+                    </div>
+                    {!isUser && (
+                      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Bot size={16} className="text-blue-600" />
+                      </div>
+                    )}
                   </div>
-                </div>
-                {message.role === 'assistant' && (
-                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Bot size={16} className="text-blue-600" />
-                  </div>
-                )}
-              </div>
-            ))}
+                );
+              })}
 
-            {execution.content && (
-              <>
-                <hr className="border-gray-200 my-6" />
+              {execution.content && (
                 <div className="flex justify-end gap-3 max-w-[85%] ml-auto">
                   <div className="flex flex-col items-end flex-1">
-                    <div className="rounded-2xl px-4 py-3 bg-blue-600 text-white">
+                    <div className="w-full rounded-2xl px-4 py-3 bg-blue-600 text-white">
                       <ExpandableMessage content={execution.content} isUser={false} />
                     </div>
                   </div>
@@ -205,7 +268,33 @@ export function ExecutionView() {
                     <Bot size={16} className="text-blue-600" />
                   </div>
                 </div>
-              </>
+              )}
+            </div>
+          </div>
+
+          {/* Metadata Section */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 space-y-4">
+            <h2 className="text-lg font-medium mb-4">Additional Information</h2>
+            
+            {execution.thread_execution_params_template?.response_format && (
+              <ExpandableJson 
+                data={execution.thread_execution_params_template.response_format} 
+                title="Response Format"
+              />
+            )}
+            
+            {execution.execution_response_metadata && (
+              <ExpandableJson 
+                data={execution.execution_response_metadata} 
+                title="Response Metadata"
+              />
+            )}
+            
+            {execution.execution_request_metadata && (
+              <ExpandableJson 
+                data={execution.execution_request_metadata} 
+                title="Request Metadata"
+              />
             )}
           </div>
         </div>

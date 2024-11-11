@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, ChevronDown, ChevronUp, Trash2, Plus, Save, X } from 'lucide-react';
+import { Settings, ChevronDown, ChevronUp, Trash2, Plus, Save } from 'lucide-react';
 import { promptConfigApi, PromptConfig } from '../lib/api/prompt-config';
 import { Template, templateApi } from '../lib/api/template';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
@@ -136,14 +136,12 @@ export function ParamsTab({ project }: ParamsTabProps) {
         editingConfig.template_id
       );
 
-      // Update the configs list with the new template
       setConfigs(configs.map(c => 
         c.name === editingConfig.name && c.environment === editingConfig.environment
           ? editingConfig
           : c
       ));
 
-      // Clear the template details cache for the new template
       await fetchTemplateDetails(editingConfig.template_id);
       
       setEditingConfig(null);
@@ -198,144 +196,164 @@ export function ParamsTab({ project }: ParamsTabProps) {
           return (
             <div
               key={configId}
-              className="bg-white rounded-lg border border-gray-200 p-6 hover:shadow-lg transition-shadow"
+              className="app-card group"
+              onClick={() => !isEditing && handleExpand(configId, config.template_id)}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-medium">{config.name}</h3>
-                  <p className="text-sm text-gray-500">Environment: {config.environment}</p>
+              <div className="app-card-content">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-medium">{config.name}</h3>
+                    <p className="text-sm text-gray-500">Environment: {config.environment}</p>
+                  </div>
+                  <div className="app-card-actions">
+                    {isExpanded && !isEditing && (
+                      <>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEditingConfig(config);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Settings size={18} className="text-gray-400" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfig(config);
+                          }}
+                          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} className="text-gray-400" />
+                        </button>
+                      </>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleExpand(configId, config.template_id);
+                      }}
+                      className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                    >
+                      {isExpanded ? (
+                        <ChevronUp size={18} className="text-gray-400" />
+                      ) : (
+                        <ChevronDown size={18} className="text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  {isExpanded && !isEditing && (
-                    <>
-                      <button
-                        onClick={() => setEditingConfig(config)}
-                        className="text-gray-400 hover:text-gray-600"
-                      >
-                        <Settings size={18} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setDeleteConfig(config);
-                        }}
-                        className="text-gray-400 hover:text-red-600"
-                      >
-                        <Trash2 size={18} />
-                      </button>
-                    </>
-                  )}
-                  <button
-                    onClick={() => handleExpand(configId, config.template_id)}
-                    className="text-gray-400 hover:text-gray-600"
-                  >
-                    {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                  </button>
-                </div>
+
+                {isExpanded && (
+                  <div className="mt-4 space-y-4">
+                    {isEditing ? (
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
+                          <select
+                            value={editingConfig.template_id}
+                            onChange={(e) => setEditingConfig({
+                              ...editingConfig,
+                              template_id: e.target.value
+                            })}
+                            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          >
+                            {availableTemplates.map(template => (
+                              <option key={template.identifier} value={template.identifier}>
+                                {template.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingConfig(null);
+                            }}
+                            className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleUpdate();
+                            }}
+                            disabled={isSaving}
+                            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          >
+                            <Save size={18} />
+                            {isSaving ? 'Saving...' : 'Save Changes'}
+                          </button>
+                        </div>
+                      </div>
+                    ) : isLoadingTemplate ? (
+                      <div className="flex justify-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                      </div>
+                    ) : template ? (
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <span className="text-sm text-gray-500">Template:</span>
+                            <span className="ml-2">{template.name}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Model:</span>
+                            <span className="ml-2">{template.model}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Temperature:</span>
+                            <span className="ml-2">{template.temperature}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Timeout:</span>
+                            <span className="ml-2">{template.timeout}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Tokens:</span>
+                            <span className="ml-2">{template.max_tokens || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Top P:</span>
+                            <span className="ml-2">{template.top_p || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Completion Tokens:</span>
+                            <span className="ml-2">{template.max_completion_tokens || 'N/A'}</span>
+                          </div>
+                          <div>
+                            <span className="text-sm text-gray-500">Max Output Tokens:</span>
+                            <span className="ml-2">{template.max_output_tokens || 'N/A'}</span>
+                          </div>
+                        </div>
+
+                        {template.system_prompt && (
+                          <div>
+                            <span className="text-sm text-gray-500 block mb-1">System Prompt:</span>
+                            <p className="text-sm bg-gray-50 p-3 rounded-lg">{template.system_prompt}</p>
+                          </div>
+                        )}
+
+                        {template.response_format && Object.keys(template.response_format).length > 0 && (
+                          <div>
+                            <span className="text-sm text-gray-500 block mb-1">Response Format:</span>
+                            <pre className="text-sm bg-gray-50 p-3 rounded-lg overflow-auto">
+                              {JSON.stringify(template.response_format, null, 2)}
+                            </pre>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center text-gray-500 py-4">
+                        Template information not available
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-
-              {isExpanded && (
-                <div className="mt-4 space-y-4">
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Template</label>
-                        <select
-                          value={editingConfig.template_id}
-                          onChange={(e) => setEditingConfig({
-                            ...editingConfig,
-                            template_id: e.target.value
-                          })}
-                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        >
-                          {availableTemplates.map(template => (
-                            <option key={template.identifier} value={template.identifier}>
-                              {template.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => setEditingConfig(null)}
-                          className="px-4 py-2 text-gray-600 hover:text-gray-900"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleUpdate}
-                          disabled={isSaving}
-                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                        >
-                          <Save size={18} />
-                          {isSaving ? 'Saving...' : 'Save Changes'}
-                        </button>
-                      </div>
-                    </div>
-                  ) : isLoadingTemplate ? (
-                    <div className="flex justify-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                    </div>
-                  ) : template ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <span className="text-sm text-gray-500">Template:</span>
-                          <span className="ml-2">{template.name}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Model:</span>
-                          <span className="ml-2">{template.model}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Temperature:</span>
-                          <span className="ml-2">{template.temperature}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Timeout:</span>
-                          <span className="ml-2">{template.timeout}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Max Tokens:</span>
-                          <span className="ml-2">{template.max_tokens || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Top P:</span>
-                          <span className="ml-2">{template.top_p || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Max Completion Tokens:</span>
-                          <span className="ml-2">{template.max_completion_tokens || 'N/A'}</span>
-                        </div>
-                        <div>
-                          <span className="text-sm text-gray-500">Max Output Tokens:</span>
-                          <span className="ml-2">{template.max_output_tokens || 'N/A'}</span>
-                        </div>
-                      </div>
-
-                      {template.system_prompt && (
-                        <div>
-                          <span className="text-sm text-gray-500 block mb-1">System Prompt:</span>
-                          <p className="text-sm bg-gray-50 p-3 rounded-lg">{template.system_prompt}</p>
-                        </div>
-                      )}
-
-                      {template.response_format && Object.keys(template.response_format).length > 0 && (
-                        <div>
-                          <span className="text-sm text-gray-500 block mb-1">Response Format:</span>
-                          <pre className="text-sm bg-gray-50 p-3 rounded-lg overflow-auto">
-                            {JSON.stringify(template.response_format, null, 2)}
-                          </pre>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="text-center text-gray-500 py-4">
-                      Template information not available
-                    </div>
-                  )}
-                </div>
-              )}
+              {!isEditing && <div className="app-card-overlay" />}
             </div>
           );
         })}
