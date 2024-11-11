@@ -1,6 +1,7 @@
 import React from 'react';
-import { LayoutGrid, Play, Sliders, FileCode, Boxes, ChevronLeft, MessageSquare, Github } from 'lucide-react';
+import { LayoutGrid, Play, Sliders, FileCode, Boxes, ChevronLeft, MessageSquare, Github, BookOpen } from 'lucide-react';
 import { ProfileDropdown } from './ProfileDropdown';
+import { Tooltip } from './Tooltip';
 
 interface Project {
   id: string;
@@ -81,19 +82,35 @@ export function Sidebar({ activeTab, onTabChange, selectedProject, onBackToProje
         )}
       </div>
 
-      <div className="mt-auto border-t border-gray-200 p-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Boxes className="text-blue-600" size={20} />
-          <span className="font-semibold text-gray-900">CompextAI</span>
+      <div className="mt-auto border-t border-gray-200 p-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Boxes className="text-blue-600" size={20} />
+            <span className="font-semibold text-gray-900">CompextAI</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Tooltip text="Docs">
+              <a
+                href="https://compextai.notion.site/Docs-13b5ef52981080b4bdd9dcad34bbc394"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+              >
+                <BookOpen size={18} className="text-white" />
+              </a>
+            </Tooltip>
+            <Tooltip text="Source Code">
+              <a
+                href="https://github.com/burnerlee/compextAI"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+              >
+                <Github size={18} className="text-white" />
+              </a>
+            </Tooltip>
+          </div>
         </div>
-        <a
-          href="https://github.com/burnerlee/compextAI"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
-        >
-          <Github size={18} className="text-white" />
-        </a>
       </div>
     </aside>
   );

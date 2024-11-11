@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Boxes, Zap, Eye, Repeat, Workflow, Settings, ArrowRight, Github } from 'lucide-react';
+import { Boxes, Zap, Eye, Repeat, Workflow, Settings, ArrowRight, Github, BookOpen } from 'lucide-react';
+import { Tooltip } from '../components/Tooltip';
 
 function AnimatedHeroText() {
   const [showAnimation, setShowAnimation] = useState(false);
@@ -57,14 +58,26 @@ export function LandingPage() {
               <span className="font-semibold text-xl">CompextAI</span>
             </div>
             <div className="flex items-center gap-4">
-              <a
-                href="https://github.com/burnerlee/compextAI"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
-              >
-                <Github size={18} className="text-white" />
-              </a>
+              <Tooltip text="Docs">
+                <a
+                  href="https://compextai.notion.site/Docs-13b5ef52981080b4bdd9dcad34bbc394"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                >
+                  <BookOpen size={18} className="text-white" />
+                </a>
+              </Tooltip>
+              <Tooltip text="Source Code">
+                <a
+                  href="https://github.com/burnerlee/compextAI"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-8 h-8 bg-gray-900 rounded-lg flex items-center justify-center hover:bg-gray-800 transition-colors"
+                >
+                  <Github size={18} className="text-white" />
+                </a>
+              </Tooltip>
               <Link to="/login" className="text-gray-600 hover:text-gray-900">
                 Sign in
               </Link>
