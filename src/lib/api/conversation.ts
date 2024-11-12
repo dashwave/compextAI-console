@@ -4,6 +4,7 @@ export interface Thread {
   identifier: string;
   title: string;
   metadata: Record<string, string> | null;
+  created_at: string;
 }
 
 export interface Message {

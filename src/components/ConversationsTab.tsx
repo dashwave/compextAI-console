@@ -39,7 +39,9 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
       setIsLoading(true);
       setError(null);
       const data = await threadApi.list(project.name);
-      setThreads(data);
+      // Sort by created_at in descending order
+      const sortedData = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setThreads(sortedData);
     } catch (err: any) {
       console.error('Error fetching threads:', err);
       setError(err.message || 'Failed to fetch threads');
@@ -53,7 +55,8 @@ export function ConversationsTab({ project }: ConversationsTabProps) {
     setIsRefreshing(true);
     try {
       const data = await threadApi.list(project.name);
-      setThreads(data);
+      const sortedData = data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      setThreads(sortedData);
       setError(null);
     } catch (err: any) {
       console.error('Error refreshing threads:', err);
