@@ -37,6 +37,8 @@ export function ExecutionsTab({ project }: ExecutionsTabProps) {
       setIsLoading(true);
       setError(null);
       const data = await executionApi.list(project.name);
+      // sort by created_at in descending order
+      data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setExecutions(data);
     } catch (err: any) {
       console.error('Error fetching executions:', err);
@@ -51,6 +53,8 @@ export function ExecutionsTab({ project }: ExecutionsTabProps) {
     setIsRefreshing(true);
     try {
       const data = await executionApi.list(project.name);
+      // sort by created_at in descending order
+      data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       setExecutions(data);
       setError(null);
     } catch (err: any) {
