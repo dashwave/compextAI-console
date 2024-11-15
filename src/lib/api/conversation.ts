@@ -42,5 +42,14 @@ export const threadApi = {
     } catch (error) {
       throw handleApiError(error);
     }
+  },
+
+  getMessagesWithExecution: async (threadId: string): Promise<Message[]> => {
+    try {
+      const response = await apiClient.get(`/message/thread/${threadId}?include_execution=true`);
+      return response.data || [];
+    } catch (error) {
+      throw handleApiError(error);
+    }
   }
 };

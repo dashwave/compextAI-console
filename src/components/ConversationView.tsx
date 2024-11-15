@@ -5,6 +5,7 @@ import { ScrollButtons } from './ScrollButtons';
 
 interface ConversationViewProps {
   threadId: string;
+  projectName: string | undefined;
   onClose: () => void;
 }
 
@@ -92,7 +93,7 @@ function ExpandableMessage({ content, isUser }: ExpandableMessageProps) {
   );
 }
 
-export function ConversationView({ threadId, onClose }: ConversationViewProps) {
+export function ConversationView({ threadId, projectName, onClose }: ConversationViewProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +107,7 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
     try {
       setIsLoading(true);
       setError(null);
-      const data = await threadApi.getMessages(threadId);
+      const data = await threadApi.getMessagesWithExecution(threadId);
       setMessages(data);
     } catch (err) {
       const apiError = err as ApiError;
@@ -142,7 +143,7 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
           <div className="max-w-3xl mx-auto">
             {systemMessages.map((msg, index) => (
               <div key={index} className="text-sm text-gray-600">
-                <span className="font-medium text-gray-700">Context:</span>{' '}
+                <span className="font-medium text-gray-700">System Prompt:</span>{' '}
                 <ExpandableMessage content={msg.content} isUser={false} />
               </div>
             ))}
@@ -153,10 +154,12 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
       <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {chatMessages.map((message, index) => {
           const isUser = message.role === 'user';
-
+          const isExecution = message.role === 'execution';
           return (
-            <div
-              key={index}
+            <>
+              {!isExecution && (
+                <div
+                  key={index}
               className={`flex ${isUser ? 'justify-start' : 'justify-end'} gap-3 max-w-[85%] ${isUser ? 'ml-0' : 'ml-auto'}`}
             >
               {isUser && (
@@ -182,7 +185,16 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
                   <Bot size={16} className="text-blue-600" />
                 </div>
               )}
-            </div>
+                </div>
+              )}
+              {isExecution && (
+                <div key={index} className="flex justify-center">
+                  <a href={`/project/${projectName}/executions/${message.content}`} className="text-blue-600 hover:text-blue-800 font-medium">
+                    Execution
+                  </a>
+                </div>
+              )}
+            </>
           );
         })}
       </div>

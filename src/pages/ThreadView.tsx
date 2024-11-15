@@ -24,7 +24,7 @@ export function ThreadView() {
         </button>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-          {threadId && <ConversationView threadId={threadId} onClose={handleBack} />}
+          {threadId && <ConversationView threadId={threadId} projectName={projectName} onClose={handleBack} />}
         </div>
       </div>
     </div>
