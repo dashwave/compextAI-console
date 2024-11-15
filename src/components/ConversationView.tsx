@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { threadApi, Message, ApiError } from '../lib/api-client';
 import { Bot, User, ChevronDown, ChevronUp } from 'lucide-react';
+import { ScrollButtons } from './ScrollButtons';
 
 interface ConversationViewProps {
   threadId: string;
@@ -95,6 +96,7 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetchMessages();
@@ -148,7 +150,7 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
+      <div ref={containerRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-6">
         {chatMessages.map((message, index) => {
           const isUser = message.role === 'user';
 
@@ -184,6 +186,7 @@ export function ConversationView({ threadId, onClose }: ConversationViewProps) {
           );
         })}
       </div>
+      <ScrollButtons containerRef={containerRef} />
     </div>
   );
 }

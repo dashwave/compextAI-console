@@ -8,7 +8,8 @@ export function ThreadView() {
   const navigate = useNavigate();
 
   const handleBack = () => {
-    navigate(`/project/${projectName}/conversations`);
+    // Use replace: false to maintain the browser history
+    navigate(`/project/${projectName}/conversations`, { replace: false });
   };
 
   return (

@@ -25,13 +25,33 @@ export interface Execution {
   execution_request_metadata: Record<string, any>;
   system_prompt?: string;
   thread_execution_params_template: ExecutionTemplate;
+  output?: string;
+}
+
+export interface ListExecutionsParams {
+  page: number;
+  limit: number;
+  search?: string;
+  filters?: Record<string, string>;
+}
+
+export interface ExecutionsResponse {
+  executions: Execution[];
+  total: number;
 }
 
 export const executionApi = {
-  list: async (projectName: string): Promise<Execution[]> => {
+  list: async (projectName: string, params: ListExecutionsParams): Promise<ExecutionsResponse> => {
     try {
-      const response = await apiClient.get(`/threadexec/all/${projectName}`);
-      return response.data || [];
+      const queryParams = new URLSearchParams({
+        page: params.page.toString(),
+        limit: params.limit.toString(),
+        ...(params.search ? { search: params.search } : {}),
+        ...(params.filters ? { filters: JSON.stringify(params.filters) } : {})
+      });
+
+      const response = await apiClient.get(`/threadexec/all/${projectName}?${queryParams}`);
+      return response.data;
     } catch (error) {
       throw handleApiError(error);
     }
@@ -40,6 +60,17 @@ export const executionApi = {
   get: async (executionId: string): Promise<Execution> => {
     try {
       const response = await apiClient.get(`/threadexec/${executionId}`);
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error);
+    }
+  },
+
+  rerun: async (executionId: string, templateId: string): Promise<Execution> => {
+    try {
+      const response = await apiClient.post(`/threadexec/${executionId}/rerun`, {
+        thread_execution_param_template_id: templateId
+      });
       return response.data;
     } catch (error) {
       throw handleApiError(error);

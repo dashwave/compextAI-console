@@ -34,8 +34,8 @@ function RequireAuth({ children }: { children: JSX.Element }) {
 
 function ProjectDashboard() {
   const navigate = useNavigate();
-  const { projectName, tab = 'conversations' } = useParams();
-  const [activeTab, setActiveTab] = useState(tab);
+  const { projectName, tab = 'conversations', templateId } = useParams();
+  const [activeTab, setActiveTab] = useState(templateId ? 'templates' : tab);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -47,8 +47,8 @@ function ProjectDashboard() {
   }, [projectName]);
 
   useEffect(() => {
-    setActiveTab(tab);
-  }, [tab]);
+    setActiveTab(templateId ? 'templates' : tab);
+  }, [tab, templateId]);
 
   const fetchProject = async () => {
     try {
@@ -181,6 +181,14 @@ export function App() {
         />
         <Route
           path="/project/:projectName/:tab"
+          element={
+            <RequireAuth>
+              <ProjectDashboard />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/project/:projectName/templates/:templateId"
           element={
             <RequireAuth>
               <ProjectDashboard />

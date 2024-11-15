@@ -4,20 +4,32 @@ export interface Thread {
   identifier: string;
   title: string;
   metadata: Record<string, string> | null;
-  created_at: string;
 }
 
-export interface Message {
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  created_at: string;
+export interface ListThreadsParams {
+  page: number;
+  limit: number;
+  search?: string;
+  filters?: Record<string, string>;
+}
+
+export interface ThreadsResponse {
+  threads: Thread[];
+  total: number;
 }
 
 export const threadApi = {
-  list: async (projectName: string): Promise<Thread[]> => {
+  list: async (projectName: string, params: ListThreadsParams): Promise<ThreadsResponse> => {
     try {
-      const response = await apiClient.get(`/thread/all/${projectName}`);
-      return response.data || [];
+      const queryParams = new URLSearchParams({
+        page: params.page.toString(),
+        limit: params.limit.toString(),
+        ...(params.search ? { search: params.search } : {}),
+        ...(params.filters ? { filters: JSON.stringify(params.filters) } : {})
+      });
+
+      const response = await apiClient.get(`/thread/all/${projectName}?${queryParams}`);
+      return response.data;
     } catch (error) {
       throw handleApiError(error);
     }

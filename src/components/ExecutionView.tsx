@@ -217,7 +217,7 @@ export function ExecutionView() {
               <div className="p-4 bg-gray-50 border-b border-gray-200">
                 <div className="max-w-3xl mx-auto">
                   <div className="text-sm text-gray-600">
-                    <span className="font-medium text-gray-700">Context: </span>
+                    <span className="font-medium text-gray-700">System Prompt: </span>
                     <ExpandableMessage content={systemPrompt} isUser={false} />
                   </div>
                 </div>

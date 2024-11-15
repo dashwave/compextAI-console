@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FileCode, Settings, ChevronDown, ChevronUp, Save, Plus, X, Trash2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { FileCode, Settings, ChevronDown, ChevronUp, Save, Plus, X, Trash2, AlertCircle } from 'lucide-react';
 import { DeleteConfirmationModal } from './DeleteConfirmationModal';
 import { CreateTemplateModal } from './CreateTemplateModal';
 import { Template, templateApi, AVAILABLE_MODELS, ModelType } from '../lib/api/template';
@@ -15,8 +16,9 @@ interface TemplatesTabProps {
 }
 
 export function TemplatesTab({ project }: TemplatesTabProps) {
+  const { templateId } = useParams();
   const [templates, setTemplates] = useState<Template[]>([]);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(templateId || null);
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,10 +27,24 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
   const [deleteTemplate, setDeleteTemplate] = useState<Template | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [jsonError, setJsonError] = useState<string | null>(null);
+  const [responseFormatText, setResponseFormatText] = useState('');
 
   useEffect(() => {
     fetchTemplates();
   }, [project.name]);
+
+  useEffect(() => {
+    if (templateId) {
+      setExpandedId(templateId);
+    }
+  }, [templateId]);
+
+  useEffect(() => {
+    if (editingTemplate) {
+      setResponseFormatText(JSON.stringify(editingTemplate.response_format || {}, null, 2));
+    }
+  }, [editingTemplate]);
 
   const fetchTemplates = async () => {
     try {
@@ -44,14 +60,34 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
     }
   };
 
+  const validateAndParseJSON = (text: string): { valid: boolean; parsed: any } => {
+    try {
+      const parsed = JSON.parse(text);
+      return { valid: true, parsed };
+    } catch (err) {
+      return { valid: false, parsed: null };
+    }
+  };
+
   const handleUpdate = async (template: Template) => {
+    const { valid, parsed } = validateAndParseJSON(responseFormatText);
+    if (!valid) {
+      setError('Invalid JSON format in Response Format field');
+      return;
+    }
+
     try {
       setSaving(true);
-      await templateApi.update(template.identifier, template);
+      const templateToSave = {
+        ...template,
+        response_format: parsed
+      };
+      await templateApi.update(template.identifier, templateToSave);
       setTemplates(templates.map(t => 
-        t.identifier === template.identifier ? template : t
+        t.identifier === template.identifier ? templateToSave : t
       ));
       setEditingTemplate(null);
+      setJsonError(null);
     } catch (err) {
       console.error('Error updating template:', err);
     } finally {
@@ -85,6 +121,16 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
       console.error('Error deleting template:', err);
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleResponseFormatChange = (text: string) => {
+    setResponseFormatText(text);
+    const { valid } = validateAndParseJSON(text);
+    if (!valid) {
+      setJsonError('Invalid JSON format');
+    } else {
+      setJsonError(null);
     }
   };
 
@@ -254,7 +300,7 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
                           <label className="block text-sm font-medium text-gray-700 mb-1">Max Output Tokens</label>
                           <input
                             type="number"
-                            min="0"
+                            min="-1"
                             value={editingTemplate.max_output_tokens || ''}
                             onChange={(e) => setEditingTemplate({
                               ...editingTemplate,
@@ -291,29 +337,28 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
                           />
                         </div>
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-1">Response Format</label>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Response Format (JSON)</label>
                           <textarea
-                            value={JSON.stringify(editingTemplate.response_format || {}, null, 2)}
-                            onChange={(e) => {
-                              try {
-                                const parsed = JSON.parse(e.target.value);
-                                setEditingTemplate({
-                                  ...editingTemplate,
-                                  response_format: parsed
-                                });
-                              } catch (err) {
-                                // Invalid JSON, ignore
-                              }
-                            }}
+                            value={responseFormatText}
+                            onChange={(e) => handleResponseFormatChange(e.target.value)}
                             rows={4}
-                            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono text-sm"
+                            className={`w-full px-3 py-2 border rounded-lg font-mono text-sm ${
+                              jsonError ? 'border-red-300' : 'border-gray-200'
+                            }`}
                           />
+                          {jsonError && (
+                            <div className="mt-1 flex items-center gap-1 text-sm text-red-600">
+                              <AlertCircle size={14} />
+                              <span>{jsonError}</span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-end gap-2">
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setEditingTemplate(null);
+                              setJsonError(null);
                             }}
                             className="px-4 py-2 text-gray-600 hover:text-gray-900"
                           >
@@ -324,7 +369,7 @@ export function TemplatesTab({ project }: TemplatesTabProps) {
                               e.stopPropagation();
                               handleUpdate(editingTemplate);
                             }}
-                            disabled={saving}
+                            disabled={saving || !!jsonError}
                             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                           >
                             <Save size={18} />
