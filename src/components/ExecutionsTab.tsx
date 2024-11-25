@@ -31,6 +31,15 @@ const statusIcons = {
   running: <Clock className="text-blue-500 animate-spin" size={18} />,
 };
 
+const LABEL_COLORS = [
+  'bg-blue-100 text-blue-800',
+  'bg-green-100 text-green-800',
+  'bg-purple-100 text-purple-800',
+  'bg-yellow-100 text-yellow-800',
+  'bg-pink-100 text-pink-800',
+  'bg-indigo-100 text-indigo-800',
+];
+
 export function ExecutionsTab({ project }: ExecutionsTabProps) {
   const navigate = useNavigate();
   const { projectName } = useParams();
@@ -208,6 +217,20 @@ export function ExecutionsTab({ project }: ExecutionsTabProps) {
                         <p className="text-sm text-gray-500">
                           Thread ID: {execution.thread_id}
                         </p>
+                        {execution.metadata && Object.keys(execution.metadata).length > 0 && (
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {Object.entries(execution.metadata).map(([key, value], i) => (
+                              <span
+                                key={key}
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  LABEL_COLORS[i % LABEL_COLORS.length]
+                                }`}
+                              >
+                                {key}: {value}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                         {execution.thread_execution_params_template?.model && (
                           <p className="text-sm text-gray-500">
                             Model: {execution.thread_execution_params_template.model}

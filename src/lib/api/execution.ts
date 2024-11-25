@@ -26,6 +26,7 @@ export interface Execution {
   system_prompt?: string;
   thread_execution_params_template: ExecutionTemplate;
   output?: string;
+  metadata?: Record<string, any>;
 }
 
 export interface ListExecutionsParams {
