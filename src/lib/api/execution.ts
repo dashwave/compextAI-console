@@ -27,6 +27,7 @@ export interface Execution {
   thread_execution_params_template: ExecutionTemplate;
   output?: string;
   metadata?: Record<string, any>;
+  execution_time?: number;
 }
 
 export interface ListExecutionsParams {

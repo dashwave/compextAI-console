@@ -119,6 +119,12 @@ export function ExecutionView() {
               </div>
             </div>
 
+            {execution.execution_time && execution.execution_time > 0 ? (
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm text-gray-500">Execution Time: {execution.execution_time}s</span>
+              </div>
+            ):(<div></div>)}
+
             {/* Execution Parameters */}
             {execution.thread_execution_params_template && (
               <div className="mt-6 border-t border-gray-200 pt-6">
@@ -240,7 +246,18 @@ export function ExecutionView() {
                               isUser ? 'bg-gray-100 text-gray-900' : 'bg-blue-600 text-white'
                             }`}
                           >
-                            <ExpandableMessage content={message.content} isUser={isUser} />
+                            {
+                              // check if the content is a string by checking instanceType
+                              typeof message.content === 'string' ? (
+                                <ExpandableMessage content={message.content} isUser={isUser} />
+                              ) : (
+                                typeof message.content === 'object' ? (
+                                  <ExpandableMessage content={JSON.stringify(message.content)} isUser={isUser} />
+                                ) : (
+                                  <div>Could not render content of this message</div>
+                                )
+                              )
+                            }
                           </div>
                         </div>
                         {!isUser && (
