@@ -18,6 +18,16 @@ export interface ThreadsResponse {
   total: number;
 }
 
+export interface Message {
+  identifier: string;
+  role: string;
+  content: any;
+  created_at: string;
+  updated_at: string;
+  thread_id: string;
+  metadata: Record<string, string> | null;
+}
+
 export const threadApi = {
   list: async (projectName: string, params: ListThreadsParams): Promise<ThreadsResponse> => {
     try {

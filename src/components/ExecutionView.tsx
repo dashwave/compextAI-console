@@ -245,7 +245,18 @@ export function ExecutionView() {
                           isUser ? 'bg-gray-100 text-gray-900' : 'bg-blue-600 text-white'
                         }`}
                       >
-                        <ExpandableMessage content={message.content} isUser={isUser} />
+                        {
+                          // check if the content is a string by checking instanceType
+                          typeof message.content === 'string' ? (
+                            <ExpandableMessage content={message.content} isUser={isUser} />
+                          ) : (
+                            typeof message.content === 'object' ? (
+                              <ExpandableMessage content={JSON.stringify(message.content)} isUser={isUser} />
+                            ) : (
+                              <div>Could not render content of this message</div>
+                            )
+                          )
+                        }
                       </div>
                     </div>
                     {!isUser && (
