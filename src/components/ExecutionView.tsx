@@ -91,6 +91,9 @@ export function ExecutionView() {
       setExecution(data);
 
       // Handle system prompt
+      if (typeof data.input_messages === 'object'){
+        data.input_messages = []
+      }
       const systemMessage = data.input_messages.find(msg => msg.role === 'system');
       setSystemPrompt(data.system_prompt || (systemMessage ? systemMessage.content : null));
     } catch (err: any) {

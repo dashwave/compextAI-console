@@ -19,6 +19,7 @@ export const AVAILABLE_MODELS = [
   'gpt-4o',
   'o1-mini',
   'o1-preview',
+  'o1',
   'claude-3-5-sonnet'
 ] as const;
 
