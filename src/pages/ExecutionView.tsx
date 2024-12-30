@@ -17,6 +17,57 @@ export function ExecutionView() {
   const [isConversationExpanded, setIsConversationExpanded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  function getOutputContent(output: any, contentStr: string): string {
+  // check if output is a string
+  if (typeof output === 'string') {
+    return output;
+  }
+  // check if output is an array of objects
+  let finalOutput = "";
+  if (Array.isArray(output) && output.every(item => typeof item === 'object')) {
+    for (const item of output) {
+      switch (item.type) {
+        case 'text':
+          finalOutput += `${item.text}\n`;
+          break;
+        case 'tool_use':
+          finalOutput += `\nTool used: ${item.name}\nInput: ${JSON.stringify(item.input)}\n`;
+          break;
+      }
+    }
+    return finalOutput;
+  }
+
+  return contentStr;
+}
+
+function decodeBase64Image(data: string): string {
+  return `data:image/jpeg;base64,${data}`;
+}
+
+// returns an html element with the content
+function getInputMessageContent(content: any): string {
+  let finalOutput = "";
+  for (const item of content) {
+    switch (item.type) {
+      case 'text':
+        finalOutput += `\n${item.text}\n`;
+        break;
+      case 'tool_use':
+        finalOutput += `\nTool used: ${item.name}\nInput: ${JSON.stringify(item.input)}\n`;
+        break;
+      case 'image':
+        // implement image rendering later
+        finalOutput += `\n[Image]\n`;
+        break;
+      case 'tool_result':
+        finalOutput += `\n${JSON.stringify(item.content)}\n`;
+        break;
+    }
+  }
+  return finalOutput;
+}
+
   useEffect(() => {
     if (executionId) {
       fetchExecution();
@@ -29,11 +80,6 @@ export function ExecutionView() {
       setError(null);
       const data = await executionApi.get(executionId!);
       setExecution(data);
-
-      // Handle system prompt
-      if (typeof data.input_messages === 'object'){
-        data.input_messages = []
-      }
       const systemMessage = data.input_messages.find(msg => msg.role === 'system');
       setSystemPrompt(data.system_prompt || (systemMessage ? systemMessage.content : null));
     } catch (err: any) {
@@ -77,6 +123,9 @@ export function ExecutionView() {
   }
 
   const messages = execution.input_messages.filter(msg => msg.role !== 'system');
+  
+  console.log("messages", messages);
+  console.log("execution", execution);
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
@@ -255,7 +304,7 @@ export function ExecutionView() {
                                 <ExpandableMessage content={message.content} isUser={isUser} />
                               ) : (
                                 typeof message.content === 'object' ? (
-                                  <ExpandableMessage content={JSON.stringify(message.content)} isUser={isUser} />
+                                  <ExpandableMessage content={getInputMessageContent(message.content)} isUser={isUser} />
                                 ) : (
                                   <div>Could not render content of this message</div>
                                 )
@@ -304,7 +353,7 @@ export function ExecutionView() {
             <div>
               <span className="text-sm text-gray-500 block">Output</span>
               {execution.status === 'completed' && (
-                <ExpandableMessage content={execution.content} isUser={false} />
+                <ExpandableMessage content={getOutputContent(execution?.output?.content, execution?.content)} isUser={false} />
               )}
               {execution.status === 'failed' && (
                 <span className="text-red-600">{execution?.output?.error || 'Execution failed'}</span>
