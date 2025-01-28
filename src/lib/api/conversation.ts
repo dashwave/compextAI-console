@@ -22,6 +22,7 @@ export interface Message {
   identifier: string;
   role: string;
   content: any;
+  tool_calls: any[];
   created_at: string;
   updated_at: string;
   thread_id: string;

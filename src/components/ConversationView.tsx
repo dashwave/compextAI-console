@@ -93,6 +93,22 @@ function ExpandableMessage({ content, isUser }: ExpandableMessageProps) {
   );
 }
 
+const getMessageContent = (message: Message) => {
+  if (typeof message.content === 'object') {
+    return JSON.stringify(message.content);
+  }
+  
+  if (message.tool_calls && message.tool_calls.length > 0) {
+    let content = message.content;
+    message.tool_calls.forEach(toolCall => {
+      content += `\n\nTool Call: ${toolCall.function.name}\nArguments:\n${JSON.stringify(JSON.parse(toolCall.function.arguments), null, 2)}`;
+    });
+    return content;
+  }
+
+  return message.content;
+}
+
 export function ConversationView({ threadId, projectName, onClose }: ConversationViewProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -177,19 +193,7 @@ export function ConversationView({ threadId, projectName, onClose }: Conversatio
                       : 'bg-blue-600 text-white'
                   }`}
                 >
-                  {
-                    // check if the content is a string by checking instanceType
-                    typeof message.content === 'string' ? (
-                      <ExpandableMessage content={message.content} isUser={isUser} />
-                    ) : (
-                      typeof message.content === 'object' ? (
-                        <ExpandableMessage content={JSON.stringify(message.content)} isUser={isUser} />
-                      ) : (
-                        <div>Could not render content of this message</div>
-                      )
-                    )
-                  }
-                  {/* <ExpandableMessage content={message.content} isUser={isUser} /> */}
+                  <ExpandableMessage content={getMessageContent(message)} isUser={isUser} />
                 </div>
               </div>
               {!isUser && (
