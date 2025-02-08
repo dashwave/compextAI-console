@@ -20,6 +20,7 @@ export const AVAILABLE_MODELS = [
   'o1-mini',
   'o1-preview',
   'o1',
+  'o3-mini',
   'claude-3-5-sonnet'
 ] as const;
 
