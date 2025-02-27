@@ -21,7 +21,8 @@ export const AVAILABLE_MODELS = [
   'o1-preview',
   'o1',
   'o3-mini',
-  'claude-3-5-sonnet'
+  'claude-3-5-sonnet',
+  'claude-3-7-sonnet'
 ] as const;
 
 export type ModelType = typeof AVAILABLE_MODELS[number];
